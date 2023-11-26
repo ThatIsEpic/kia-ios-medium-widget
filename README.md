@@ -11,7 +11,7 @@ This iOS medium widget displays the current state of charge (SoC) and the chargi
 
 ## Background
 
-Since the official Kia Connect App does not support any kind of widgets for iOS, I gladly found Niklas Vieth development for the Polestart 2. With the help of [Scriptable](https://scriptable.app/) and his installation guide it was easily changeable. The widget relies on the [Tibber GraphQL API](https://developer.tibber.com/docs/overview) as a proxy to get the current state of charge of the battery. Thus, you will also need a Tibber account to get access to the SoC data.
+The official Kia Connect App supports widgets for iOS, but none that displays the current SoC. Fortunately, I found this feature in Niklas Vieth's development for the Polestart 2. With the help of [Scriptable](https://scriptable.app/) and his installation guide it was easily changeable. The widget relies on the [Tibber GraphQL API](https://developer.tibber.com/docs/overview) as a proxy to get the current state of charge of the battery. Thus, you will also need a Tibber account to get access to the SoC data.
 
 ## Prerequisites
 
@@ -31,7 +31,7 @@ Since the official Kia Connect App does not support any kind of widgets for iOS,
 
         [![Download with ScriptDude](https://scriptdu.de/download.svg)](https://scriptdu.de/?name=Kia+Medium+Widget&source=https%3A%2F%2Fgist.github.com%2FThatIsEpic%2F3306871318f121b3642e8f8845c5d574%23file-kia-medium-widget-js&docs=#generator)
 
-    - Copy the content of [kia-medium-widget.js](https://gist.github.com/ThatIsEpic/3306871318f121b3642e8f8845c5d574#file-kia-medium-widget-js), create a new script in `Scriptable`, paste the content and rename it to `Kia Medium SoC Widget`.
+    - Copy the content of [kia-medium-widget.js](hhttps://gist.github.com/ThatIsEpic/17b4466b6d3d6bc36910b08f24472851), create a new script in `Scriptable`, paste the content and rename it to `Kia Medium SoC Widget`.
 
 3. Replace the placeholder values for `<TIBBER_EMAIL>` and `<TIBBER_PASSWORD>` with your Tibber login credentials.
     > :warning: Make sure to remove the placeholder characters `<` `>` as well.

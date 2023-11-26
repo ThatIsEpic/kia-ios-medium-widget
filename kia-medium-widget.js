@@ -27,15 +27,15 @@ const tibberData = await fetchTibberData();
 const widget = await createKiaWidget(tibberData);
 
 if (config.runsInWidget) {
-  // The script runs inside a widget, so we pass our instance of ListWidget to be shown inside the widget on the Home Screen.
+  // The script is executed within a widget, so we pass our instance of ListWidget to be displayed within the widget on the homescreen.
   Script.setWidget(widget);
 } else {
-  // The script runs inside the app, so we preview the widget.
+  // The script is executed within the app so that we get a preview of the widget.
   widget.presentMedium();
 }
 Script.complete();
 
-// Create polestar widget
+// Create kia widget
 async function createKiaWidget(tibberData) {
   const appIcon = await loadImage(KIA_ICON);
   const title = tibberData.name;
