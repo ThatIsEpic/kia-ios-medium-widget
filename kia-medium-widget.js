@@ -1,32 +1,30 @@
 // icon-color: green; icon-glyph: battery-half;
 
 /**
- * This widget has been developed by Niklas Vieth.
- * Installation and configuration details can be found at https://github.com/niklasvieth/polestar-ios-medium-widget
+ * This widget has been developed by Niklas Vieth and customised by Sebbo.
+ * Installation and configuration details can be found at https://github.com/ThatIsEpic/kia-ios-medium-widget
  */
 
 // Config
-const TIBBER_EMAIL = "EMAIL_ADDRESS";
-const TIBBER_PASSWORD = "PASSWORD";
-const LAST_SEEN_RELATIVE_DATE = true; // false
-const MIN_SOC_GREEN = 60; 
-const MIN_SOC_ORANGE = 30;
+const TIBBER_EMAIL = "<EMAIL_ADDRESS>";
+const TIBBER_PASSWORD = "<PASSWORD>";
+const LAST_SEEN_RELATIVE_DATE = true; // 'true' -> relative date; 'false' -> absolute date
 
+// Icons
 const TIBBER_BASE_URL = "https://app.tibber.com";
-const POLESTAR_ICON = "https://www.polestar.com/w3-assets/coast-228x228.png";
+const KIA_ICON = "https://www.kia.com/etc.clientlibs/settings/wcm/designs/kiapress/clientlibs/resources/rbr/logos/logo_kia_white-rbr.png";
 
-// Check that params are set
-if (TIBBER_EMAIL === "EMAIL_ADDRESS") {
+// Check that parameters are set
+if (TIBBER_EMAIL === "<EMAIL_ADDRESS>") {
   throw new Error("Parameter TIBBER_EMAIL is not configured");
 }
-if (TIBBER_PASSWORD === "PASSWORD") {
+if (TIBBER_PASSWORD === "<PASSWORD>") {
   throw new Error("Parameter TIBBER_PASSWORD is not configured");
 }
 
-// You can run the script in the app to preview the widget or you can go to the Home Screen, add a new Scriptable widget and configure the widget to run this script.
-// You can also try creating a shortcut that runs this script. Running the shortcut will show widget.
+// Create widget
 const tibberData = await fetchTibberData();
-const widget = await createPolestarWidget(tibberData);
+const widget = await createKiaWidget(tibberData);
 
 if (config.runsInWidget) {
   // The script runs inside a widget, so we pass our instance of ListWidget to be shown inside the widget on the Home Screen.
@@ -38,11 +36,11 @@ if (config.runsInWidget) {
 Script.complete();
 
 // Create polestar widget
-async function createPolestarWidget(tibberData) {
-  const appIcon = await loadImage(POLESTAR_ICON);
+async function createKiaWidget(tibberData) {
+  const appIcon = await loadImage(KIA_ICON);
   const title = tibberData.name;
   const widget = new ListWidget();
-  widget.url = "polestar-explore://";
+  widget.url = "mkiaconnecteu://";
 
   // Add background gradient
   const gradient = new LinearGradient();
@@ -58,23 +56,24 @@ async function createPolestarWidget(tibberData) {
   titleElement.font = Font.mediumSystemFont(14);
   titleStack.addSpacer();
   const appIconElement = titleStack.addImage(appIcon);
-  appIconElement.imageSize = new Size(30, 30);
+  appIconElement.imageSize = new Size(50, 20);
   appIconElement.cornerRadius = 4;
   widget.addSpacer(12);
 
-  // Center Stack
+  // Center stack
   const contentStack = widget.addStack();
-  const carImage = await loadImage(tibberData.imgUrl);
+  //const carImage = await loadImage(tibberData.imgUrl); /* 'imgUrl' does not deliver a picutre of the car at the moment, but the Kia logo instead. */
+  const carImage = await loadImage("https://www.kia.com/content/dam/kwcms/kme/de/de/assets/campaings/202306_models_available_widget/freecoding/assets/img/kia_ev6_520x260.webp?20231061518?20231061518");
   const carImageElement = contentStack.addImage(carImage);
   carImageElement.imageSize = new Size(150, 100);
   contentStack.addSpacer();
 
-  // Battery Info
+  // Battery info
   const batteryInfoStack = contentStack.addStack();
   batteryInfoStack.layoutVertically();
   batteryInfoStack.addSpacer();
 
-  // Battery Percent Value
+  // Battery percent value
   const batteryPercent = tibberData.battery.percent;
   const isCharging = tibberData.battery.isCharging;
   const batteryPercentStack = batteryInfoStack.addStack();
@@ -118,6 +117,8 @@ async function createPolestarWidget(tibberData) {
 /********************
  * Tibber API helpers
  ********************/
+
+// Tibber token
 async function fetchTibberToken() {
   const tokenUrl = `${TIBBER_BASE_URL}/login.credentials`;
   const body = {
@@ -136,6 +137,7 @@ async function fetchTibberToken() {
   return response.token;
 }
 
+// Tibber data
 async function fetchTibberData() {
   const tibberToken = await fetchTibberToken();
   const url = `${TIBBER_BASE_URL}/v4/gql`;
@@ -161,12 +163,13 @@ async function loadImage(url) {
 }
 
 /*************
- * Formatters
+ * Battery icon formatters
  *************/
+
 function getBatteryPercentColor(percent) {
-  if (percent > MIN_SOC_GREEN) {
+  if (percent > 60) {
     return Color.green();
-  } else if (percent > MIN_SOC_ORANGE) {
+  } else if (percent > 30) {
     return Color.orange();
   } else {
     return Color.red();
