@@ -14,6 +14,12 @@ const LAST_SEEN_RELATIVE_DATE = true; // 'true' -> relative date; 'false' -> abs
 const TIBBER_BASE_URL = "https://app.tibber.com";
 const KIA_ICON = "https://www.kia.com/etc.clientlibs/settings/wcm/designs/kiapress/clientlibs/resources/rbr/logos/logo_kia_white-rbr.png";
 
+// Battery thresholds
+const FULL_BATTERY_THRESHOLD = 90;
+const HIGH_BATTERY_THRESHOLD = 60;
+const MEDIUM_BATTERY_THRESHOLD = 40;
+const LOW_BATTERY_THRESHOLD = 10;
+
 // Check that parameters are set
 if (TIBBER_EMAIL === "<EMAIL_ADDRESS>") {
   throw new Error("Parameter TIBBER_EMAIL is not configured");
@@ -26,18 +32,33 @@ if (TIBBER_PASSWORD === "<PASSWORD>") {
 const tibberData = await fetchTibberData();
 const widget = await createKiaWidget(tibberData);
 
-if (config.runsInWidget) {
-  // The script is executed within a widget, so we pass our instance of ListWidget to be displayed within the widget on the homescreen.
-  Script.setWidget(widget);
-} else {
-  // The script is executed within the app so that we get a preview of the widget.
-  widget.presentMedium();
+try {
+  if (config.runsInWidget) {
+    // The script is executed within a widget, so we pass our instance of ListWidget to be displayed within the widget on the homescreen.
+    Script.setWidget(widget);
+  } else {
+    // The script is executed within the app so that we get a preview of the widget.
+    widget.presentMedium();
+  }
+
+  Script.complete();
+} catch (error) {
+  handleError("Error fetching data", error);
 }
-Script.complete();
+
+// Error handler
+function handleError(errorMessage, errorDetails) {
+  console.error("Error:", errorDetails);
+  // Handle the error gracefully, perhaps show an error message on the widget
+  const errorWidget = new ListWidget();
+  errorWidget.addText(errorMessage);
+  Script.setWidget(errorWidget);
+  Script.complete();
+}
 
 // Create kia widget
 async function createKiaWidget(tibberData) {
-  const appIcon = await loadImage(KIA_ICON);
+  const appIcon = await loadImageWithHandling(KIA_ICON, "brand");
   const title = tibberData.name;
   const widget = new ListWidget();
   widget.url = "mkiaconnecteu://";
@@ -62,8 +83,8 @@ async function createKiaWidget(tibberData) {
 
   // Center stack
   const contentStack = widget.addStack();
-  //const carImage = await loadImage(tibberData.imgUrl); /* 'imgUrl' does not deliver a picutre of the car at the moment, but the Kia logo instead. */
-  const carImage = await loadImage("https://www.kia.com/content/dam/kwcms/kme/de/de/assets/campaings/202306_models_available_widget/freecoding/assets/img/kia_ev6_520x260.webp?20231061518?20231061518");
+  //const carImage = await loadImageWithHandling(tibberData.imgUrl, "car"); /* 'imgUrl' does not deliver a picutre of the car at the moment, but the Kia logo instead. */
+  const carImage = await loadImageWithHandling("https://www.kia.com/content/dam/kwcms/kme/de/de/assets/campaings/202306_models_available_widget/freecoding/assets/img/kia_ev6_520x260.webp?20231061518?20231061518", "car");
   const carImageElement = contentStack.addImage(carImage);
   carImageElement.imageSize = new Size(150, 100);
   contentStack.addSpacer();
@@ -157,9 +178,15 @@ async function fetchTibberData() {
   return response.data.me.homes[0].electricVehicles[0];
 }
 
-async function loadImage(url) {
-  const req = new Request(url);
-  return req.loadImage();
+// Load images
+async function loadImageWithHandling(url, altText) {
+  try {
+    const req = new Request(url);
+    return await req.loadImage();
+  } catch (error) {
+    console.error(`Error loading ${altText} icon from ${url}:`, error);
+    throw new Error(`Failed to load ${altText} icon`);
+  }
 }
 
 /*************
@@ -167,9 +194,13 @@ async function loadImage(url) {
  *************/
 
 function getBatteryPercentColor(percent) {
-  if (percent > 60) {
+  if (typeof percent !== 'number' || percent < 0 || percent > 100) {
+    throw new Error('Invalid percent value');
+  }
+
+  if (percent > HIGH_BATTERY_THRESHOLD) {
     return Color.green();
-  } else if (percent > 30) {
+  } else if (percent > MEDIUM_BATTERY_THRESHOLD) {
     return Color.orange();
   } else {
     return Color.red();
@@ -177,18 +208,26 @@ function getBatteryPercentColor(percent) {
 }
 
 function getBatteryPercentIcon(percent, isCharging) {
+  if (typeof percent !== 'number' || percent < 0 || percent > 100) {
+    throw new Error('Invalid percent value');
+  }
+
+  if (typeof isCharging !== 'boolean') {
+    throw new Error('Invalid isCharging value');
+  }
+
   if (isCharging) {
     return SFSymbol.named(`battery.100percent.bolt`);
   }
   let percentRounded = 0;
 
-  if (percent > 90) {
+  if (percent > FULL_BATTERY_THRESHOLD) {
     percentRounded = 100;
-  } else if (percent > 60) {
+  } else if (percent > HIGH_BATTERY_THRESHOLD) {
     percentRounded = 75;
-  } else if (percent > 40) {
+  } else if (percent > MEDIUM_BATTERY_THRESHOLD) {
     percentRounded = 50;
-  } else if (percent > 10) {
+  } else if (percent > LOW_BATTERY_THRESHOLD) {
     percentRounded = 25;
   }
   return SFSymbol.named(`battery.${percentRounded}`);
